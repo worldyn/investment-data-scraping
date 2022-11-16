@@ -25,7 +25,7 @@ def prep_company_name(company_name):
         i = company_name.index('/')
         company_name = company_name[:i]
 
-    common_words = ['ltd','ltd.','inc','inc.','limited','corp','corp.'] 
+    common_words = ['ltd','ltd.','inc','inc.','limited','corp','corp.', "llc", "llc."] 
     for w in common_words:
         company_name.replace(w, '')
 
@@ -87,7 +87,9 @@ def main():
         
         # Add organistional info
         for org in orgs:
-            domain_org = org['homepage_url'].replace("https://", "").replace("http://", "")
+            domain_org = org.get('homepage_url')
+            if domain_org:
+                domain_org = prep_url(domain_org)
             name_org = org['company_name'].lower().strip()
             #name_org = re.sub(r'[^\w\s]', '', name_org)
             if ('web' in company.keys() and domain == domain_org) or company_name in name_org:
@@ -102,11 +104,12 @@ def main():
                 company['employee_count'] = org.get('employee_count')
 
         if company['uuid'] == None:
-            print(f'No match org data: {company_name}')
-            company['uuid'] = uuid.uuid1()
+            #print(f'No match org data: {company_name}')
+            company['uuid'] = str(uuid.uuid1())
             org_misses += 1
         else: 
-            print(f'Match org data: {company_name}')
+            #print(f'Match org data: {company_name}')
+            pass
 
         # Add funding info
         company["fundings"] = []
@@ -124,12 +127,13 @@ def main():
                 })
         
         if len(company["fundings"]) == 0:
-            print(f'No match funding data: {company_name}')
+            #print(f'No match funding data: {company_name}')
             funding_misses += 1
         else: 
-            print(f'Match funding data: {company_name}')
-            
-    portfolio_enriched.append(company)
+            #print(f'Match funding data: {company_name}')
+            pass
+
+        portfolio_enriched.append(company)
     
     print(f"> Miss rate for organisational data: {float(org_misses)/len(portfolio)}")
     print(f"> Miss rate for funding data: {float(funding_misses)/len(portfolio)}")
