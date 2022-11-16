@@ -23,6 +23,8 @@ def parse_row(r):
     divs = r.find_all('div', recursive=False)
     name = divs[0].find('span',class_='inline-block').get_text()
 
+    assert name != None
+
     data_row = {'name': name}
 
     #print(f"# name: {name}")

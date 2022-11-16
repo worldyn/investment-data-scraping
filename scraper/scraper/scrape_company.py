@@ -43,8 +43,7 @@ def parse_company_page(page_source, company):
             member_list.append({'role':role,'name': name})
         return member_list
 
-    # first div contains website:
-    # TODO: loop through each entry, found web + responsible advisor
+    # first div contains company info and website:
     if divs[0].find('ul'):
         #company_info = add_members(divs[0].find('ul'))
         '''
@@ -89,11 +88,13 @@ def main():
     
     portfolio_enriched = []
     for company in tqdm(portfolio):
+        # get company name in url format
         company_name = company['name']
         company_href = re.sub(r'[^\w\s]', ' ', company_name.lower()).strip()
         company_href = re.sub(r' +', '-', company_href)
         url = "https://eqtgroup.com/current-portfolio/" + company_href
         print(f'URL: {url}')
+
         driver.get(url)
         page_source = driver.page_source
         
