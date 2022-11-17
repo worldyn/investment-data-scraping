@@ -23,8 +23,9 @@ A pipeline that enriches the information on EQT portfolio companies scraped from
 
 ### Install
 
-Download a Selenium [chromedriver](https://chromedriver.chromium.org/downloads)
-that matches your chrome version. Put the driver in /scraper
+Download Selenium chromedriver version [105.0.5195.19](https://chromedriver.storage.googleapis.com/index.html?path=105.0.5195.19/). You must run with mobile version width for the EQT website, I tried setting size (258,258) in scraper/settings.py
+
+Put the driver in /scraper.
 
 ```bash
 # Install packages
@@ -36,6 +37,13 @@ poetry install
 gcloud auth login
 gcloud config set project PROJECT_ID
 ```
+
+```bash
+# Set root dir env variable
+export ROOT_DIR=./scraper
+```
+
+Assumes python is available with 'python' command
 
 ### Schemas
 See [Data Models](#DataModels)
@@ -55,7 +63,14 @@ Assumes that organisation and funding json files are in scraper/data_in (Add lin
 
 ```bash
 # Run whole pipeline
-python scraper/run.py -b bucket
+cd scraper
+poetry run python run.py -b bucket
+```
+
+```bash
+# Run whole pipeline with a specific date (assumes day is enough granularity)
+cd scraper
+poetry run python run.py -b bucket -d 17-11-2022
 ```
 
 ### Testing
@@ -70,7 +85,7 @@ python scraper/test.py
 {
     "name": Str,
     "sector": Str,
-    "country": "China",
+    "country": Str,
     "fund": [
                 {
                     "name": Str,
@@ -86,7 +101,7 @@ python scraper/test.py
 {
     "name": Str,
     "sector": Str,
-    "country": "China",
+    "country": Str,
     "fund": [
                 {
                     "name": Str,
@@ -116,7 +131,7 @@ python scraper/test.py
     "uuid": Str
     "name": Str,
     "sector": Str,
-    "country": "China",
+    "country": Str,
     "fund": [
                 {
                     "name": Str,
@@ -156,3 +171,9 @@ python scraper/test.py
     ]
 }
 ```
+### Future Improvements
+- Improve portability by packaging python+selenium in docker
+- Add script version to data filenames
+- Add each pipeline step to something more sophisitcated, e.g airflow, to do e.g scheduled runs
+- Use JSON schemas for validation
+- Improve name entity matching in parse_company_page() in scrape_company.py
