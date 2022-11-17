@@ -96,7 +96,7 @@ def main():
 
         print(f"URL {url}")
         if not "<div>" in page_source:
-            print(f"> Could NOT fetch: {url}")
+            print(f"> Could NOT do fetch: {url}")
             continue
 
         portfolio_enriched.append(parse_company_page(page_source, company))

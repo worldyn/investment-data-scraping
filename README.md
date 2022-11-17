@@ -181,3 +181,4 @@ python scraper/test.py
 - Since each pipeline step is an executable ython file, it can easily be added to more complex pipelines, such as Airflow. With this you could do e.g scheduling, and produce some nice DAGs :)
 - Use JSON schemas for validation
 - Improve company name matching in parse_company_page() in scrape_company.py
+- Scrape directly from data source
