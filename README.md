@@ -23,7 +23,7 @@ A pipeline that enriches the information on EQT portfolio companies scraped from
 
 ### Install
 
-Download Selenium chromedriver version [105.0.5195.19](https://chromedriver.storage.googleapis.com/index.html?path=105.0.5195.19/). You must run with mobile version width for the EQT website, I tried setting size (258,258) in scraper/settings.py
+Download Selenium chromedriver version [105.0.5195.19](https://chromedriver.storage.googleapis.com/index.html?path=105.0.5195.19/). I tried setting window size (258,258) in scraper/settings.py which gives me the mobile version width for the EQT website.
 
 Put the driver in /scraper.
 
@@ -43,12 +43,14 @@ gcloud config set project PROJECT_ID
 export ROOT_DIR=./scraper
 ```
 
-Assumes python is available with 'python' command
+Assumes: 
+- python is available with 'python' command
+- interview-test-org.json and interview-test-funding.json put in scraper/data_in
 
 ### Schemas
 See [Data Models](#DataModels)
 
-My latest version available in [here](https://storage.googleapis.com/eqt-interview/enriched_final_17-11-2022.json)
+My latest data version available in [here](https://storage.googleapis.com/eqt-interview/enriched_final_17-11-2022.json) (The resulting enriched data of the code)
 
 ### Pipeline Steps
 Assumes that organisation and funding json files are in scraper/data_in (Add link?)
@@ -57,25 +59,27 @@ Assumes that organisation and funding json files are in scraper/data_in (Add lin
 - scrape_company.py: Scrape individual company data from https://eqtgroup.com/current-portfolio/company, producing schema (B)
 - enrich_company.py: Enrich portfolio data with data from organisation+funding data, , producing schema (C)
 - upload.py: Upload data to Google Storage
-- run.py: Run whole pipeline
+- run.py: Run whole pipeline. Assumes all file paths/names are based in ROOT_DIR environment variable
 
 ### Commands
 
 ```bash
 # Run whole pipeline
-cd scraper
-poetry run python run.py -b bucket
+poetry run python scraper/run.py -b bucket
 ```
 
 ```bash
 # Run whole pipeline with a specific date (assumes day is enough granularity)
-cd scraper
-poetry run python run.py -b bucket -d 17-11-2022
+poetry run python scraper/run.py -b bucket -d dd-mm-yyyy
+```
+
+```bash
+# Skip scraping step (assumes scraping is already done for same date)
+poetry run python scraper/run.py -b bucket --noscrape
 ```
 
 ### Testing
 ```bash
-# Run whole pipeline
 python scraper/test.py
 ```
 
@@ -173,7 +177,7 @@ python scraper/test.py
 ```
 ### Future Improvements
 - Improve portability by packaging python+selenium in docker
-- Add script version to data filenames
-- Add each pipeline step to something more sophisitcated, e.g airflow, to do e.g scheduled runs
+- Add script version to data filenames so that user knows which version produced the data
+- Since each pipeline step is an executable ython file, it can easily be added to more complex pipelines, such as Airflow. With this you could do e.g scheduling, and produce some nice DAGs :)
 - Use JSON schemas for validation
-- Improve name entity matching in parse_company_page() in scrape_company.py
+- Improve company name matching in parse_company_page() in scrape_company.py

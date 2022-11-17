@@ -95,7 +95,9 @@ def main():
         page_source = driver.page_source
 
         print(f"URL {url}")
-        assert "<div>" in page_source
+        if not "<div>" in page_source:
+            print(f"> Could NOT fetch: {url}")
+            continue
 
         portfolio_enriched.append(parse_company_page(page_source, company))
 
