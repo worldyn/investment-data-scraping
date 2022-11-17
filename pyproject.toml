@@ -7,11 +7,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-scrapy = "^2.7.1"
-scrapy-selenium = "^0.0.7"
 beautifulsoup4 = "^4.11.1"
 google-cloud-storage = "^2.6.0"
 selenium = "^4.6.0"
+tqdm = "^4.64.1"
+lxml = "4.8.0"
 
 
 [build-system]

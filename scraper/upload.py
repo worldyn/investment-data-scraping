@@ -42,5 +42,6 @@ def main():
 
     upload_blob(args.bucket, args.input, args.destination)
 
+
 if __name__ == "__main__":
     main()

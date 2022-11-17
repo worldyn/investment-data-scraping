@@ -20,6 +20,9 @@ def parse_row(r):
     dict: dictionary consisiting of portfolio company data columns
     """
     divs = r.find_all("div", recursive=False)
+
+    assert len(divs) > 0
+
     name = divs[0].find("span", class_="inline-block").get_text()
 
     assert name is not None
@@ -61,7 +64,11 @@ def main():
     driver.get(url)
     page_source = driver.page_source
 
-    assert '<div>' in page_source
+    with open("page.html", "w") as file:
+        file.write(page_source)
+
+    return
+    assert "<div>" in page_source
 
     # extract row-wise elements
     soup = BeautifulSoup(page_source, "lxml")

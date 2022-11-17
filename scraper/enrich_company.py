@@ -6,6 +6,7 @@ from tqdm import tqdm
 import argparse
 import re
 import uuid
+import os
 
 
 def prep_company_name(company_name):
@@ -21,7 +22,7 @@ def prep_company_name(company_name):
     """
     company_name = company_name.lower().strip()
     company_name = company_name.replace("-", " ")  # e.g AM-Pharma to AM Pharma
-    if "/" in company_name:  
+    if "/" in company_name:
         # remove second company, e.g kuoni group / vfs global to kuoni group
         i = company_name.index("/")
         company_name = company_name[:i]
@@ -36,7 +37,7 @@ def prep_company_name(company_name):
         "corp.",
         "llc",
         "llc.",
-        "."
+        ".",
     ]
     for w in common_words:
         company_name = company_name.replace(w, "")
@@ -60,6 +61,7 @@ def prep_url(url):
         domain = domain[:-1]
     return domain
 
+
 def parse_org(company, company_name, org, domain):
     """ 
     Extracts organisational data into company dict
@@ -78,9 +80,7 @@ def parse_org(company, company_name, org, domain):
         domain_org = prep_url(domain_org)
     name_org = org["company_name"].lower().strip()
     # name_org = re.sub(r'[^\w\s]', '', name_org)
-    if (
-        "web" in company.keys() and domain == domain_org
-    ) or company_name in name_org:
+    if ("web" in company.keys() and domain == domain_org) or company_name in name_org:
         company["uuid"] = org.get("uuid")
         company["country_code"] = org.get("country_code")
         company["city"] = org.get("city")
@@ -91,6 +91,7 @@ def parse_org(company, company_name, org, domain):
         company["funding_total_usd"] = org.get("funding_total_usd")
         company["employee_count"] = org.get("employee_count")
     return company
+
 
 def parse_funding(company, company_name, fund):
     name_funding = fund["company_name"].lower().strip()
@@ -107,7 +108,9 @@ def parse_funding(company, company_name, fund):
         )
     return company
 
+
 def main():
+    root_dir = os.environ["ROOT_DIR"]
     parser = argparse.ArgumentParser(
         description="Enrich individual companies with organisational and \
          funding data. You must set input and output json file names"
@@ -136,11 +139,11 @@ def main():
     with open(args.organisation, "r") as f:
         for line in f:
             orgs.append(json.loads(line))
-        print(f'> Organisational data schema: {orgs[0].keys()}')
+        print(f"> Organisational data schema: {orgs[0].keys()}")
     with open(args.funding, "r") as f:
         for line in f:
             funding.append(json.loads(line))
-        print(f'> Funding data schema: {funding[0].keys()}')
+        print(f"> Funding data schema: {funding[0].keys()}")
 
     assert len(portfolio) > 0
     assert len(orgs) > 0
@@ -177,7 +180,9 @@ def main():
 
         portfolio_enriched.append(company)
 
-    print(f"> New schema: {portfolio_enriched[0].keys()}\n{portfolio_enriched[1].keys()}")
+    print(
+        f"> New schema: {portfolio_enriched[0].keys()}\n{portfolio_enriched[1].keys()}"
+    )
     print(f"> Miss rate for organisational data: {float(org_misses)/len(portfolio)}")
     print(f"> Miss rate for funding data: {float(funding_misses)/len(portfolio)}")
 

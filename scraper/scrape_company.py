@@ -64,6 +64,7 @@ def parse_company_page(page_source, company):
 
     return company
 
+
 def main():
     parser = argparse.ArgumentParser(
         description="Get additional data from specific company. You must set input and output json file names"
@@ -85,14 +86,16 @@ def main():
     for company in tqdm(portfolio):
         # get company name in correct url format
         company_name = company["name"]
-        company_href = re.sub(r"[^\w\s]", " ", company_name.lower()).strip()
+        company_name = re.sub(r"&", "-", company_name)
+        company_href = re.sub(r"[^&A-Za-z0-9]+", " ", company_name.lower()).strip()
         company_href = re.sub(r" +", "-", company_href)
         url = "https://eqtgroup.com/current-portfolio/" + company_href
 
         driver.get(url)
         page_source = driver.page_source
 
-        assert '<div>' in page_source
+        print(f"URL {url}")
+        assert "<div>" in page_source
 
         portfolio_enriched.append(parse_company_page(page_source, company))
 
