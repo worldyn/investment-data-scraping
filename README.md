@@ -41,6 +41,8 @@ gcloud config set project PROJECT_ID
 See [Data Models](#DataModels)
 
 ### Pipeline Steps
+Assumes that organisation and funding json files are in scraper/data_in (Add link?)
+
 - scrape_portfolio.py: Scraping portfolio columns from https://eqtgroup.com/current-portfolio, producing json schema (A) 
 - scrape_company.py: Scrape individual company data from https://eqtgroup.com/current-portfolio/company, producing schema (B)
 - enrich_company.py: Enrich portfolio data with data from organisation+funding data, , producing schema (C)
