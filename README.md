@@ -40,6 +40,8 @@ gcloud config set project PROJECT_ID
 ### Schemas
 See [Data Models](#DataModels)
 
+My latest version available in [here](https://storage.googleapis.com/eqt-interview/enriched_final_17-11-2022.json)
+
 ### Pipeline Steps
 Assumes that organisation and funding json files are in scraper/data_in (Add link?)
 
