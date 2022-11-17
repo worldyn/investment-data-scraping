@@ -134,21 +134,21 @@ python scraper/test.py
         },
     ],
     "country_code": Str,
-            "city": Str,
-            "founded_on": Str,
-            "short_description": Str
-            "description": Str
-            "funding_rounds": Str,
-            "funding_total_usd": Str,
-            "employee_count": Str,
-            "fundings": [
-                {
-                    "funding_round_uuid": Str,
-                    "investment_type": Str,
-                    "announced_on": Str,
-                    "raised_amount_usd": Str,
-                    "investor_names": Str
-                },
-            ]
+    "city": Str,
+    "founded_on": Str,
+    "short_description": Str
+    "description": Str
+    "funding_rounds": Str,
+    "funding_total_usd": Str,
+    "employee_count": Str,
+    "fundings": [
+        {
+            "funding_round_uuid": Str,
+            "investment_type": Str,
+            "announced_on": Str,
+            "raised_amount_usd": Str,
+            "investor_names": Str
+        },
+    ]
 }
 ```
