@@ -64,10 +64,10 @@ def main():
     driver.get(url)
     page_source = driver.page_source
 
-    with open("page.html", "w") as file:
-        file.write(page_source)
+    #with open("page.html", "w") as file:
+    #    file.write(page_source)
 
-    return
+    #return
     assert "<div>" in page_source
 
     # extract row-wise elements
