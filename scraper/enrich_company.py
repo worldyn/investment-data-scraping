@@ -7,7 +7,7 @@ import argparse
 import re
 import uuid
 import os
-
+import apache_beam as beam
 
 def prep_company_name(company_name):
     """ 
@@ -109,52 +109,14 @@ def parse_funding(company, company_name, fund):
     return company
 
 
-def main():
-    root_dir = os.environ["ROOT_DIR"]
-    parser = argparse.ArgumentParser(
-        description="Enrich individual companies with organisational and \
-         funding data. You must set input and output json file names"
-    )
-    parser.add_argument(
-        "-i", "--input", required=True, type=str, help="input json file"
-    )
-    parser.add_argument(
-        "-g",
-        "--organisation",
-        required=True,
-        type=str,
-        help="json file with organisational data",
-    )
-    parser.add_argument(
-        "-f", "--funding", required=True, type=str, help="json file with funding data"
-    )
-    parser.add_argument("-o", "--out", required=True, type=str, help="out json file")
-    args = parser.parse_args()
 
-    # Load files
-    with open(args.input, "r") as f:
-        portfolio = json.load(f)["portfolio"]
-    orgs = []
-    funding = []
-    with open(args.organisation, "r") as f:
-        for line in f:
-            orgs.append(json.loads(line))
-        print(f"> Organisational data schema: {orgs[0].keys()}")
-    with open(args.funding, "r") as f:
-        for line in f:
-            funding.append(json.loads(line))
-        print(f"> Funding data schema: {funding[0].keys()}")
 
-    assert len(portfolio) > 0
-    assert len(orgs) > 0
-    assert len(funding) > 0
+class EnrichPortfolio(beam.DoFn):
+    def __init__(self, orgs, funding):
+        self.orgs = orgs
+        self.funding = funding
 
-    # Count number of misses for portfolio companies
-    org_misses = 0
-    funding_misses = 0
-
-    portfolio_enriched = []
-    for company in tqdm(portfolio):
+    def process(self, company):
         company_name = prep_company_name(company["name"])
 
         if "web" in company.keys():
@@ -164,33 +126,14 @@ def main():
         company["uuid"] = None
 
         # Add organistional info
-        for org in orgs:
+        for org in self.orgs:
             company = parse_org(company, company_name, org, domain)
         if company["uuid"] == None:
             company["uuid"] = str(uuid.uuid1())
-            org_misses += 1
 
         # Add funding info
         company["fundings"] = []
-        for fund in funding:
+        for fund in self.funding:
             company = parse_funding(company, company_name, fund)
 
-        if len(company["fundings"]) == 0:
-            funding_misses += 1
-
-        portfolio_enriched.append(company)
-
-    print(
-        f"> New schema: {portfolio_enriched[0].keys()}\n{portfolio_enriched[1].keys()}"
-    )
-    print(f"> Miss rate for organisational data: {float(org_misses)/len(portfolio)}")
-    print(f"> Miss rate for funding data: {float(funding_misses)/len(portfolio)}")
-
-    print(f"> Saving to json file")
-    json_obj = json.dumps({"portfolio": portfolio_enriched}, indent=4)
-    with open(args.out, "w") as o:
-        o.write(json_obj)
-
-
-if __name__ == "__main__":
-    main()
+        yield company

@@ -2,10 +2,10 @@
 Scrape data from the EQT portfolio site and save into json file
 """
 
-import json
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-import argparse
+import apache_beam as beam
+import logging
 from settings import setup_driver
 
 
@@ -50,49 +50,48 @@ def parse_row(r):
     return data_row
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Get portfolio companies data, set output file name"
-    )
-    parser.add_argument(
-        "-f", "--file", required=True, type=str, help="output json file"
-    )
-    args = parser.parse_args()
+class Portfolio(beam.DoFn):
+    def __init__(self, limit=False):
+        #self.driver = driver
+        #self.driver = setup_driver()
+        self.limit = limit
+        pass
+    
+    def process(self, url):
+        logging.info(f"> Processing rows for {url}...")
+        print(f"> Processing rows for {url}...")
 
-    driver = setup_driver()
-    url = "https://eqtgroup.com/current-portfolio"
-    driver.get(url)
-    page_source = driver.page_source
+        #assert self.driver is not None
+        try:
+            self.driver = setup_driver()
+        except Exception as e:
+            print(f'> EXCEPTION selenium driver: {str(e)}')
 
-    #with open("page.html", "w") as file:
-    #    file.write(page_source)
+        self.driver.get(url)
+        page_source = self.driver.page_source
 
-    #return
-    assert "<div>" in page_source
+        assert "<div>" in page_source
 
-    # extract row-wise elements
-    soup = BeautifulSoup(page_source, "lxml")
-    rows_json = []
-    rows = (
-        soup.find("div", class_="order-last")
-        .find("ul")
-        .find_all("li", class_="flex", recursive=False)
-    )
-    print(f"> Number of data point rows: {len(rows)}")
+        # extract row-wise elements
+        soup = BeautifulSoup(page_source, "lxml")
+        rows = (
+            soup.find("div", class_="order-last")
+            .find("ul")
+            .find_all("li", class_="flex", recursive=False)
+        )
+        logging.info(f"> Number of data point rows: {len(rows)}")
 
-    assert len(rows) > 0
+        assert len(rows) > 0
 
-    for r in tqdm(rows):
-        data_row = parse_row(r)
-        rows_json.append(data_row)
-
-    print("> Saving to file")
-
-    json_obj = json.dumps({"portfolio": rows_json}, indent=4)
-    with open(args.file, "w") as o:
-        o.write(json_obj)
-    driver.quit()
+        i = 0
+        for r in tqdm(rows):
+            if self.limit and i > 3:
+                break
+            data_row = parse_row(r)
+            yield data_row
+            i += 1
+        
+       
+        
 
 
-if __name__ == "__main__":
-    main()

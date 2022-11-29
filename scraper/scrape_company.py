@@ -1,12 +1,12 @@
 """ 
 Enrich portfolio company data from individual company pages on EQT website.
 """
-import json
 from bs4 import BeautifulSoup
 from tqdm import tqdm
-import argparse
 from settings import setup_driver
 import re
+import apache_beam as beam
+import logging
 
 
 def parse_company_page(page_source, company):
@@ -64,49 +64,30 @@ def parse_company_page(page_source, company):
 
     return company
 
+class Companies(beam.DoFn):
+    def __init__(self):
+        pass
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Get additional data from specific company. You must set input and output json file names"
-    )
-    parser.add_argument(
-        "-i", "--input", required=True, type=str, help="input json file"
-    )
-    parser.add_argument("-o", "--out", required=True, type=str, help="out json file")
-    args = parser.parse_args()
-
-    driver = setup_driver()
-
-    with open(args.input, "r") as f:
-        portfolio = json.load(f)["portfolio"]
-
-    assert len(portfolio) > 0
-
-    portfolio_enriched = []
-    for company in tqdm(portfolio):
+    def process(self, company):
         # get company name in correct url format
+        try:
+            self.driver = setup_driver()
+        except Exception as e:
+            print(f'> EXCEPTION selenium driver: {str(e)}')
+
         company_name = company["name"]
         company_name = re.sub(r"&", "-", company_name)
         company_href = re.sub(r"[^&A-Za-z0-9]+", " ", company_name.lower()).strip()
         company_href = re.sub(r" +", "-", company_href)
         url = "https://eqtgroup.com/current-portfolio/" + company_href
 
-        driver.get(url)
-        page_source = driver.page_source
+        self.driver.get(url)
+        page_source = self.driver.page_source
 
         print(f"URL {url}")
+        #logging.info(f"URL {url}")
         if not "<div>" in page_source:
-            print(f"> Could NOT do fetch: {url}")
-            continue
+            logging.info(f"> Could NOT do fetch: {url}")
+            yield company
 
-        portfolio_enriched.append(parse_company_page(page_source, company))
-
-    print("> Saving to json file")
-    json_obj = json.dumps({"portfolio": portfolio_enriched}, indent=4)
-    with open(args.out, "w") as o:
-        o.write(json_obj)
-    driver.quit()
-
-
-if __name__ == "__main__":
-    main()
+        yield parse_company_page(page_source, company)
