@@ -1,6 +1,7 @@
 data
 data_in
 data_out
+private
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

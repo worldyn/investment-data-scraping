@@ -9,9 +9,7 @@ from scrape_portfolio import Portfolio
 from scrape_company import Companies
 from enrich_company import EnrichPortfolio
 import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
-from apache_beam.io.textio import ReadFromTextWithFilename
-from apache_beam.io import ReadFromText
+from apache_beam.options.pipeline_options import PipelineOptions,SetupOptions
 from settings import setup_driver
 import logging
 import json
@@ -21,11 +19,10 @@ from apache_beam.io import WriteToText
 def parse_jsonl(file):
     data = []
     with open(file) as f:
-        for line in f:
-            data.append(json.loads(line))
+        data.extend(json.loads(line) for line in f)
     return data
 
-def run(argv=None, save_main_session=True):
+def run(argv=None, save_main_session=True):  # sourcery skip: extract-method
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--org',
@@ -42,15 +39,12 @@ def run(argv=None, save_main_session=True):
         default='gs://eqt-interview/enriched_final_beam.json',
         help='Organisation data source and filename'
     )
-    parser.add_argument(
-        '--runner',
-        default='DirectRunner',
-        help='Apache beam runner type'
-    )
+    
     args, pipeline_args = parser.parse_known_args(argv)
-
+    logging.info(f"Pipeline args: {pipeline_args}")
     pipeline_options = PipelineOptions(pipeline_args)
-
+    
+    pipeline_options.view_as(SetupOptions).save_main_session = save_main_session
     #driver = setup_driver()
 
     with beam.Pipeline(options=pipeline_options) as p:
